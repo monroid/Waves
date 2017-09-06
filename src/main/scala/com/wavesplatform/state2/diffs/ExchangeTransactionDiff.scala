@@ -3,7 +3,7 @@ package com.wavesplatform.state2.diffs
 import cats._
 import cats.implicits._
 import com.wavesplatform.state2._
-import com.wavesplatform.state2.reader.{SnapshotStateReader}
+import com.wavesplatform.state2.reader.SnapshotStateReader
 import scorex.transaction.ValidationError
 import scorex.transaction.ValidationError.OrderValidationError
 import scorex.transaction.assets.exchange.ExchangeTransaction
@@ -23,7 +23,7 @@ object ExchangeTransactionDiff {
     val buyer = t.buyOrder.senderPublicKey.toAddress
     val seller = t.sellOrder.senderPublicKey.toAddress
 
-    def wavesPortfolio(amt: Long) = Portfolio(amt, LeaseInfo.empty, Map.empty)
+    def wavesPortfolio(amt: Long) = Portfolio(amt, LeaseBalance.empty, Map.empty)
 
     val feeDiff = Monoid.combineAll(Seq(
       Map(matcher -> wavesPortfolio(t.buyMatcherFee + t.sellMatcherFee - t.fee)),
@@ -32,27 +32,27 @@ object ExchangeTransactionDiff {
 
     val priceDiff = t.buyOrder.assetPair.priceAsset match {
       case Some(assetId) => Monoid.combine(
-        Map(buyer -> Portfolio(0, LeaseInfo.empty, Map(assetId -> buyPriceAssetChange))),
-        Map(seller -> Portfolio(0, LeaseInfo.empty, Map(assetId -> sellPriceAssetChange))))
+        Map(buyer -> Portfolio(0, LeaseBalance.empty, Map(assetId -> buyPriceAssetChange))),
+        Map(seller -> Portfolio(0, LeaseBalance.empty, Map(assetId -> sellPriceAssetChange))))
       case None => Monoid.combine(
-        Map(buyer -> Portfolio(buyPriceAssetChange, LeaseInfo.empty, Map.empty)),
-        Map(seller -> Portfolio(sellPriceAssetChange, LeaseInfo.empty, Map.empty)))
+        Map(buyer -> Portfolio(buyPriceAssetChange, LeaseBalance.empty, Map.empty)),
+        Map(seller -> Portfolio(sellPriceAssetChange, LeaseBalance.empty, Map.empty)))
     }
 
     val amountDiff = t.buyOrder.assetPair.amountAsset match {
       case Some(assetId) => Monoid.combine(
-        Map(buyer -> Portfolio(0, LeaseInfo.empty, Map(assetId -> buyAmountAssetChange))),
-        Map(seller -> Portfolio(0, LeaseInfo.empty, Map(assetId -> sellAmountAssetChange))))
+        Map(buyer -> Portfolio(0, LeaseBalance.empty, Map(assetId -> buyAmountAssetChange))),
+        Map(seller -> Portfolio(0, LeaseBalance.empty, Map(assetId -> sellAmountAssetChange))))
       case None => Monoid.combine(
-        Map(buyer -> Portfolio(buyAmountAssetChange, LeaseInfo.empty, Map.empty)),
-        Map(seller -> Portfolio(sellAmountAssetChange, LeaseInfo.empty, Map.empty)))
+        Map(buyer -> Portfolio(buyAmountAssetChange, LeaseBalance.empty, Map.empty)),
+        Map(seller -> Portfolio(sellAmountAssetChange, LeaseBalance.empty, Map.empty)))
     }
 
     val portfolios = Monoid.combineAll(Seq(feeDiff, priceDiff, amountDiff))
 
     Diff(height, tx, portfolios = portfolios, orderFills = Map(
-      ByteStr(tx.buyOrder.id()) -> OrderFillInfo(tx.amount, tx.buyMatcherFee),
-      ByteStr(tx.sellOrder.id()) -> OrderFillInfo(tx.amount, tx.sellMatcherFee)
+      ByteStr(tx.buyOrder.id()) -> VolumeAndFee(tx.amount, tx.buyMatcherFee),
+      ByteStr(tx.sellOrder.id()) -> VolumeAndFee(tx.amount, tx.sellMatcherFee)
     ))
   }
 
