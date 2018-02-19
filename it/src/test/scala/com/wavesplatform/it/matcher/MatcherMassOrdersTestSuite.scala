@@ -48,7 +48,7 @@ class MatcherMassOrdersTestSuite extends FreeSpec  with NodesFromDocker with Mat
     waitForAssetBalance(aliceNode, aliceAsset, AssetQuantity)
     waitForAssetBalance(aliceNode, aliceSecondAsset, AssetQuantity)
     waitForAssetBalance(matcherNode, aliceAsset, 0)
-    Await.result(aliceNode.transfer(aliceNode.address, bobNode.address, AssetQuantity / 2, 100000, Some(aliceAsset)), 1.minute);
+    Await.result(aliceNode.transfer(aliceNode.address, bobNode.address, AssetQuantity / 2, 100000, Some(aliceAsset)), 1.minute)
     waitForAssetBalance(bobNode, aliceAsset, AssetQuantity / 2)
   }
 
