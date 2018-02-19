@@ -4,6 +4,7 @@ import com.wavesplatform.state2._
 import monix.eval.{Coeval, Task}
 import monix.execution.Scheduler
 import monix.execution.schedulers.SchedulerService
+import scorex.account.PublicKeyAccount
 import scorex.serialization.{BytesSerializable, JsonSerializable}
 import scorex.transaction.TransactionParser.TransactionType
 import scorex.transaction.ValidationError.InvalidSignature
@@ -13,7 +14,7 @@ import scala.concurrent.duration.Duration
 
 trait Transaction extends BytesSerializable with JsonSerializable with Signed {
   val id: Coeval[ByteStr]
-
+  def sender: PublicKeyAccount
   val transactionType: TransactionType.Value
   val assetFee: (Option[AssetId], Long)
   val timestamp: Long
